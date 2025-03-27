@@ -12,7 +12,8 @@ if 'df_experiment_results' not in st.session_state:
 
 st.header('Lanzar una moneda')
 
-chart = st.line_chart([0.5])
+number_of_trials = st.slider('¿Número de intentos?', 1, 1000, 10)
+start_button = st.button('Ejecutar')
 
 def toss_coin(n):
     trial_outcomes = scipy.stats.bernoulli.rvs(p=0.5, size=n)
@@ -21,13 +22,19 @@ def toss_coin(n):
     outcome_no = 0
     outcome_1_count = 0
     status = st.empty()  # Texto animado
+    chart_placeholder = st.empty()
+    chart_data = []  # Para graficar correctamente
 
     for i, r in enumerate(trial_outcomes):
         outcome_no += 1
         if r == 1:
             outcome_1_count += 1
         mean = outcome_1_count / outcome_no
-        chart.add_rows([mean])
+        chart_data.append(mean)
+
+        chart_df = pd.DataFrame(chart_data, columns=["media"])
+        chart_placeholder.line_chart(chart_df)
+
         status.text(f"Lanzando moneda {i + 1} de {n}...")
         time.sleep(0.05)
 
@@ -40,9 +47,6 @@ def toss_coin(n):
     st.bar_chart(counts)
 
     return mean
-
-number_of_trials = st.slider('¿Número de intentos?', 1, 1000, 10)
-start_button = st.button('Ejecutar')
 
 if start_button:
     st.write(f'Experimento con {number_of_trials} intentos en curso.')
@@ -59,7 +63,7 @@ if start_button:
 
     st.session_state['df_experiment_results'] = st.session_state['df_experiment_results'].reset_index(drop=True)
 
-    # Mostrar resultado final colorido
+    # Mostrar resultado final con color
     color = "green" if mean > 0.5 else "red"
     st.markdown(f"<h2 style='color:{color};'>Resultado promedio: {mean:.2f}</h2>", unsafe_allow_html=True)
 
